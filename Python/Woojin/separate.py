@@ -30,12 +30,6 @@ def _plot_mfs(var_name, fv, model):
         A simple utility function to plot the MFs for a variable.
         Supply the variable name, MFs and a set of x values to plot.
     '''
-    # Sort x so we only plot each x-value once:
-    # xsort, _ = x.sort()
-    #    for mfname, yvals in fv.fuzzify(xsort):
-    #        temp = 'mf5'
-    #        if (mfname == temp) is False:
-    #            plt.plot(xsort.tolist(), yvals.tolist(), label=mfname)
     zero_length = (model.number_of_mfs[model.input_keywords[0]])
     x = torch.zeros(10000)
     y = -5
@@ -43,8 +37,6 @@ def _plot_mfs(var_name, fv, model):
         x[i] = torch.tensor(y)
         y += 0.001
     for mfname, yvals in fv.fuzzify(x):
-        #        print(mfname)
-        #        print(yvals)
         temp = 'mf{}'.format(zero_length)
         if (mfname == temp) is False:
             plt.plot(x, yvals.tolist(), label=mfname)

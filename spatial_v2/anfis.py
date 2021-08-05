@@ -143,6 +143,7 @@ class AntecedentLayer(torch.nn.Module):
         # Now make the MF indices for each rule:
 
         #######full combinations of rule bases
+
         mf_indices = itertools.product(*[range(n) for n in mf_count])
     #    print(*mf_indices)
         #I can reduce the rules at here but still have some problems

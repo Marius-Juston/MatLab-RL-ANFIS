@@ -15,7 +15,6 @@ def input_data(inp, y, num_cases, num_inputs):
     x = torch.zeros((num_cases, num_inputs))
     with open(inp) as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',')
-        inputs = []
         temp = 0
         for row in readCSV:
             temp_row = []
@@ -34,15 +33,10 @@ def output_csv(filename, num_cases):
     with open(filename) as csvfile:
         temp = 0
         readCSV = csv.reader(csvfile, delimiter=',')
-        angular_velocity = []
         for row in readCSV:
             for i in range(len(row)):
-                # angular_velocity.append(float(row[i]))
                 y[temp] = float(row[i])
             temp += 1
-        #    if temp == 50000:
-        #        break
-        #        print(y)
         return y
 
 
@@ -80,7 +74,6 @@ def my_model():
     for i in range(len(invardefs)):
         input_keywords.append(invardefs[i][0])
         number_of_mfs[invardefs[i][0]] = len(invardefs[i][1]) - 1
-    # print(invardefs)
 
     anf = anfis.AnfisNet('ANFIS', invardefs, outvars, input_keywords, number_of_mfs, False)
     return anf
@@ -113,33 +106,21 @@ def generate_txt(model):
 ############################### MAIN FUNCTION HERE
 if __name__ == '__main__':
     show_plots = True
-    # if len(sys.argv) == 2:  # One arg: example
-    #    example = sys.argv[1]
-    #    show_plots = False
     time_start = time.clock()  # computation time check
     print(time_start)
     model = my_model()
-    # torch.save(model,'anfis_initial_model.npy')
     ######################################
     num_data, i, o = training_data_selection("1inputs100.csv", "1outputs100.csv")
     num_inputs = len(model.input_keywords)
 
     outputs = output_csv(o, num_data)
     train_data = input_data(i, outputs, num_data, num_inputs)
-    # print(*train_data)
-    # print(model.layer['fuzzify'].varmfs)
     num_epchos = 20
     train_anfis(model, train_data, num_epchos, False)
 
     ##tuned membership parameters for x0 and mf0
     mfs_print(model)
     print((time.clock() - time_start))  ##computation time check
-    #    print(model.layer['rules'].mf_indices)      ##print the rule bases you got
-    #    print(model.layer['rules'].num_rules())     ##print the number of rule bases
     test_data = train_data
     test_anfis(model, test_data, show_plots)
-    #    plot_final_mfs(model)
-    #    plot_final_mfs1(model)
-
-    # print(model.layer['consequent']._coeff)
     generate_txt(model)

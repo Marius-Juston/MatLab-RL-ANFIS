@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
     ANFIS in torch: some simple functions to supply data and plot results.
     @author: James Power <james.power@mu.ie> Apr 12 18:13:10 2019
@@ -161,12 +159,6 @@ def _plot_mfs(var_name, fv, x):
         A simple utility function to plot the MFs for a variable.
         Supply the variable name, MFs and a set of x values to plot.
     '''
-    # Sort x so we only plot each x-value once:
-    # xsort, _ = x.sort()
-    #    for mfname, yvals in fv.fuzzify(xsort):
-    #        temp = 'mf5'
-    #        if (mfname == temp) is False:
-    #            plt.plot(xsort.tolist(), yvals.tolist(), label=mfname)
 
     x = torch.zeros(10000)
     y = -5
@@ -174,8 +166,6 @@ def _plot_mfs(var_name, fv, x):
         x[i] = torch.tensor(y)
         y += 0.001
     for mfname, yvals in fv.fuzzify(x):
-        #        print(mfname)
-        #        print(yvals)
         temp = 'mf5'
         if (mfname == temp) is False:
             plt.plot(x, yvals.tolist(), label=mfname)
@@ -235,8 +225,6 @@ def train_anfis_with(model, data, optimizer, criterion,
           format(epochs, data.dataset.tensors[0].shape[0]))
     for t in range(epochs):
         # Process each mini-batch in turn:
-        # do like model.layer['fuzzify'].varmfs['x0'].mfdefs['mf0'].b
-        #  = model.layer['fuzzify'].varmfs['x0'].mfdefs['mf0'].a to make symmetric
         for x, y_actual in data:
             y_pred = model(x)
             # Compute and print loss
@@ -247,26 +235,14 @@ def train_anfis_with(model, data, optimizer, criterion,
             optimizer.step()
 
         # Epoch ending, so now fit the coefficients based on all data:
-
-        # mfs_print(model)
-        # print(list(model.parameters()))
         x, y_actual = data.dataset.tensors
         mfs_constraint(model)
-        #    with torch.no_grad():
-        #        model.fit_coeff(x, y_actual)
-        # print(model.layer['consequent'].coefficients)
-
-        # if t == 5:
-        # model.layer['consequent'].coefficients = torch.nn.Parameter(torch.zeros(torch.Size([25, 1, 4]), dtype=dtype, requires_grad=True))
-        # self._coeff = torch.zeros(torch.Size([25, 1, 4]), dtype=dtype, requires_grad=True)
 
         # Get the error rate for the whole batch:
         y_pred = model(x)
         mse, rmse, perc_loss, rsq = calc_error(y_pred, y_actual)
         errors.append(perc_loss)
         # Print some progress information as the net is trained:
-        #    print(model.layer['fuzzify'].varmfs['theta_near'].mfdefs['mf2'].b.requires_grad)
-        #    print(model.layer['fuzzify'].varmfs['theta_near'].mfdefs['mf2'].pretty())
         temp.append(mse.item())
         time123 = ((time.clock() - 0.5))
         temp1.append(time123)
@@ -275,7 +251,6 @@ def train_anfis_with(model, data, optimizer, criterion,
         if epochs < 30 or t % 10 == 0:
             print('epoch {:4d}: MSE={:.5f}, RMSE={:.5f} ={:.2f}%, RSQ ={:.2f}% '
                   .format(t, mse, rmse, perc_loss, rsq))
-        #    print(perc_loss)
     # End of training, so graph the results:
 
     with open("mse.txt", 'w') as output:
@@ -299,13 +274,8 @@ def train_anfis(model, data, epochs=500, show_plots=False):
     '''
         Train the given model using the given (x,y) data.
     '''
-    # x, y_actual = data.dataset.tensors
-    # if show_plots:
-    #    plot_all_mfs(model, x)
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-5, momentum=0.99)
-    # optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
     criterion = torch.nn.MSELoss(reduction='sum')
-    #    print(model.parameters())
     train_anfis_with(model, data, optimizer, criterion, epochs, show_plots)
 
 

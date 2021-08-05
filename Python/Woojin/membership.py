@@ -97,7 +97,6 @@ def make_bell_mfs(a, b, clist):
     temp = [BellMembFunc(a, b, c) for c in clist]
     temp.append(Zero())
     return temp
-    # return [BellMembFunc(a, b, c) for c in clist]
 
 
 class TriangularMembFunc(torch.nn.Module):
@@ -127,7 +126,6 @@ class TriangularMembFunc(torch.nn.Module):
         return torch.where(
             torch.ByteTensor(self.a < x) & torch.ByteTensor(x <= self.b),
             (x - self.a) / (self.b - self.a),
-            # else
             torch.where(
                 torch.ByteTensor(self.b < x) & torch.ByteTensor(x <= self.c),
                 (self.c - x) / (self.c - self.b),
@@ -183,25 +181,6 @@ class TrapezoidalMembFunc(torch.nn.Module):
             self.c = c
             self.d = d
 
-    #        else:
-    #            self.register_parameter('a', _mk_param(a))
-    #            self.b = b
-    #            self.c = c
-    #            self.d = d
-
-    #    def __init__(self, a, b, c, d, constraint=True):
-    #        super(TrapezoidalMembFunc, self).__init__()
-    #        assert a <= b and b <= c and c <= d,\
-    #            'Trapezoidal parameters: must have a <= b <= c <= d.'
-    #        self.register_parameter('a', _mk_param(a))
-    #        if constraint:
-    #            self.register_parameter('b', _mk_param(b))
-    #            self.register_parameter('c', _mk_param(c))
-    #        else:
-    #            self.b = b
-    #            self.c = c
-    #        self.register_parameter('d', _mk_param(d))
-
     @staticmethod
     def symmetric(topwidth, slope, midpt):
         '''
@@ -232,8 +211,6 @@ class TrapezoidalMembFunc(torch.nn.Module):
     def forward(self, x):
         yvals = torch.zeros_like(x)
         if self.a < self.b:
-            #    print((self.a < x).type(torch.ByteTensor) )
-            #    print(torch.ByteTensor([True,1,0,0,1]) & torch.ByteTensor([True,1,1,1,1]))
             incr = (self.a < x) & (x <= self.b)
             yvals[incr] = (x[incr] - self.a) / (self.b - self.a)
         if self.b < self.c:
@@ -242,17 +219,6 @@ class TrapezoidalMembFunc(torch.nn.Module):
         if self.c < self.d:
             decr = (self.c <= x) & (x < self.d)
             yvals[decr] = (self.d - x[decr]) / (self.d - self.c)
-        #        if self.a < self.b:
-        #            print((self.a < x).type(torch.ByteTensor) )
-        #            print(torch.ByteTensor([True,1,0,0,1]) & torch.ByteTensor([True,1,1,1,1]))
-        #            incr = torch.ByteTensor((self.a < x)) & torch.ByteTensor((x <= self.b))
-        #            yvals[incr] = (x[incr] - self.a) / (self.b - self.a)
-        #        if self.b < self.c:
-        #            decr = torch.ByteTensor((self.b < x)) & torch.ByteTensor((x < self.c))
-        #            yvals[decr] = 1
-        #        if self.c < self.d:
-        #            decr = torch.ByteTensor((self.c <= x)) & torch.ByteTensor((x < self.d))
-        #            yvals[decr] = (self.d - x[decr]) / (self.d - self.c)
         return yvals
 
     def pretty(self):
@@ -265,9 +231,6 @@ def make_trap_mfs(width, slope, clist):
     temp = [TrapezoidalMembFunc.symmetric(width, slope, c) for c in clist]
     temp.append(Zero())
     return temp
-
-
-#    return [TrapezoidalMembFunc.symmetric(width, slope, c) for c in clist]
 
 
 # Make the classes available via (controlled) reflection:

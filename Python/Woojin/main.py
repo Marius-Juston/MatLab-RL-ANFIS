@@ -37,12 +37,6 @@ def _plot_mfs(var_name, fv, model):
         A simple utility function to plot the MFs for a variable.
         Supply the variable name, MFs and a set of x values to plot.
     '''
-    # Sort x so we only plot each x-value once:
-    # xsort, _ = x.sort()
-    #    for mfname, yvals in fv.fuzzify(xsort):
-    #        temp = 'mf5'
-    #        if (mfname == temp) is False:
-    #            plt.plot(xsort.tolist(), yvals.tolist(), label=mfname)
     zero_length = (model.number_of_mfs[model.input_keywords[0]])
     x = torch.zeros(10000)
     y = -5
@@ -50,8 +44,6 @@ def _plot_mfs(var_name, fv, model):
         x[i] = torch.tensor(y)
         y += 0.001
     for mfname, yvals in fv.fuzzify(x):
-        #        print(mfname)
-        #        print(yvals)
         temp = 'mf{}'.format(zero_length)
         if (mfname == temp) is False:
             plt.plot(x, yvals.tolist(), label=mfname)
@@ -69,8 +61,6 @@ def plot_all_mfs(model):
 gym.logger.set_level(40)
 env = NormalizedEnv(gym.make("Pendulum-v0"))
 anf = Anfis().my_model()
-# print(env.action_space.shape)
-# env = gym.make('CartPole-v1')
 print(env.action_space.shape)
 agent = DDPGagent(env, anf)
 noise = OUNoise(env.action_space)
@@ -85,8 +75,6 @@ for episode in range(100):
 
     for step in range(500):
         action = agent.get_action(state)
-        #    action = np.tanh(action)
-        #    print(action)
         action = noise.get_action(action, step)
         new_state, reward, done, _ = env.step(action)
         agent.memory.push(state, action, reward, new_state, done)

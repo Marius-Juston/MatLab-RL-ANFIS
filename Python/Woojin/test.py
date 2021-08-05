@@ -22,4 +22,3 @@ while 1:
 
     state = new_state
     step += 1
-# model_copy = copy.deepcopy(model)

@@ -53,9 +53,6 @@ def averaging(model, input):
                 model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].d.copy_(torch.tensor(0.125, dtype=torch.float))
             else:
                 model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].d.copy_(torch.tensor(right, dtype=torch.float))
-    # with torch.no_grad():
-    #    model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].a.copy_(torch.tensor(left,dtype=torch.float))
-    #    model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].d.copy_(torch.tensor(right,dtype=torch.float))
 
     # close_near
     left = abs(model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].b.item())
@@ -82,8 +79,6 @@ def averaging(model, input):
                 model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].c.copy_(torch.tensor(0.025, dtype=torch.float))
             else:
                 model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].c.copy_(torch.tensor(right, dtype=torch.float))
-    #    model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].b.copy_(torch.tensor(left,dtype=torch.float))
-    #    model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].c.copy_(torch.tensor(right,dtype=torch.float))
 
 
 def mfs_constraint(model):
@@ -115,14 +110,11 @@ class DDPGagent:
                  critic_learning_rate=1e-4, gamma=0.99, tau=1e-3, max_memory_size=50000):
         # Params
         self.num_states = num_inputs
-        # self.num_actions = env.action_space.shape
         self.num_actions = num_outputs
         self.gamma = gamma
         self.tau = tau
         self.curr_states = np.array([0, 0, 0])
         # Networks
-        #    self.actor = Actor(self.num_states, hidden_size, self.num_actions)
-        #    self.actor_target = Actor(self.num_states, hidden_size, self.num_actions)
         self.actor = anf
         self.actor_target = anf
         self.critic = Critic(self.num_states + self.num_actions, hidden_size, self.num_actions)
@@ -136,13 +128,9 @@ class DDPGagent:
 
         # Training
         self.memory = Memory(max_memory_size)
-        #    self.critic_criterion  = nn.MSELoss()
         self.critic_criterion = torch.nn.MSELoss(reduction='sum')
         self.actor_optimizer = optim.SGD(self.actor.parameters(), lr=1e-6 * 7, momentum=0.99)
-        #    self.actor_optimizer  = optim.Adam(self.actor.parameters(), lr=actor_learning_rate)
         self.critic_optimizer = optim.SGD(self.critic.parameters(), lr=critic_learning_rate, momentum=0.99)
-
-    #    self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=critic_learning_rate)
 
     def get_action(self, state):
         state = Variable(torch.from_numpy(state).float().unsqueeze(0))
@@ -153,7 +141,6 @@ class DDPGagent:
     def update(self, batch_size):
         states, actions, rewards, next_states, _ = self.memory.sample(batch_size)
         states = torch.FloatTensor(states)
-        # print(actions)
         actions = torch.FloatTensor(actions)
         rewards = torch.FloatTensor(rewards)
         next_states = torch.FloatTensor(next_states)
@@ -170,24 +157,11 @@ class DDPGagent:
 
         # Actor loss
         policy_loss = -self.critic.forward(states, self.actor.forward(states)).mean() / -10.
-        #  print("critic_loss")
-        #  print(critic_loss)
-        #  print("policy_loss")
-        #  print(policy_loss)
-        # print(self.actor.layer['fuzzify'].varmfs['theta_near'].mfdefs['mf2'].a)
         # update networks
         self.actor_optimizer.zero_grad()
         policy_loss.backward()
         self.actor_optimizer.step()
         mfs_constraint(self.actor)
-        #    (self.actor.layer['consequent']._coeff)[3] = torch.tensor([[0.0,0.0,0.0,0.0]])
-        #    (self.actor.layer['consequent']._coeff)[4] = torch.tensor([[0.0,0.0,0.0,0.0]])
-        #    (self.actor.layer['consequent']._coeff)[20] = torch.tensor([[0.0,0.0,0.0,0.0]])
-        #    (self.actor.layer['consequent']._coeff)[21] = torch.tensor([[0.0,0.0,0.0,0.0]])
-        #    (self.actor.layer['consequent']._coeff)[2] = torch.tensor([[0.0,0.0,0.0,0.0]])
-        #    (self.actor.layer['consequent']._coeff)[7] = torch.tensor([[0.0,0.0,0.0,0.0]])
-        #    (self.actor.layer['consequent']._coeff)[13] = torch.tensor([[0.0,0.0,0.0,0.0]])
-        #    (self.actor.layer['consequent']._coeff)[18] = torch.tensor([[0.0,0.0,0.0,0.0]])
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()

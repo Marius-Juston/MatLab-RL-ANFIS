@@ -91,7 +91,6 @@ class FuzzifyLayer(torch.nn.Module):
         for var in varmfs:
             var.pad_to(maxmfs)
         self.varmfs = torch.nn.ModuleDict(zip(self.varnames, varmfs))
-        # print(self.varmfs)
 
     @property
     def num_in(self):
@@ -144,19 +143,11 @@ class AntecedentLayer(torch.nn.Module):
         # Now make the MF indices for each rule:
 
         #######full combinations of rule bases
-        #    mf_indices = itertools.product(*[range(n) for n in mf_count])
-        #    print(*mf_indices)
-        # I can reduce the rules at here but still have some problems
-        #    mf_indices = list(mf_indices)
-        #    mf_indices = sample(mf_indices, 35)
-        #    mf_indices[0] = (0,0,0,0,3)
-        #    print(mf_indices)
         mf_indices = [(0, 0, 5), (0, 1, 5), (0, 2, 5), (0, 3, 5), (0, 4, 5),
                       (1, 5, 0), (1, 5, 1), (1, 5, 2), (1, 5, 3), (1, 5, 4),
                       (2, 5, 0), (2, 5, 1), (2, 5, 2), (2, 5, 3), (2, 5, 4),
                       (3, 5, 0), (3, 5, 1), (3, 5, 2), (3, 5, 3), (0, 5, 4),
                       (4, 0, 5), (4, 1, 5), (4, 2, 5), (4, 3, 5), (4, 4, 5), ]
-        #    self.mf_indices = torch.tensor((mf_indices))
 
         ########popping one rule base
 
@@ -178,7 +169,6 @@ class AntecedentLayer(torch.nn.Module):
         self.mf_out = mf_out
         # mf_indices.shape is n_rules * n_in
         print(mf_count)
-        #    print(list(mf_indices))
         print(len(self.mf_indices))
 
     def num_rules(self):
@@ -209,7 +199,6 @@ class AntecedentLayer(torch.nn.Module):
         # ants.shape is n_cases * n_rules * n_in
         # Last, take the AND (= product) for each rule-antecedent
         rules = torch.prod(ants, dim=2)
-        #    print(rules[0])
         return rules
 
 
@@ -223,7 +212,6 @@ class ConsequentLayer(torch.nn.Module):
     def __init__(self, d_in, d_rule, d_out):
         super(ConsequentLayer, self).__init__()
         c_shape = torch.Size([d_rule, d_out, d_in + 1])
-        #    c_shape = torch.Size([d_rule, d_out, 1])
         self._coeff = torch.zeros(c_shape, dtype=dtype, requires_grad=True)
 
     @property
@@ -298,10 +286,6 @@ class PlainConsequentLayer(ConsequentLayer):
 
     def __init__(self, *params):
         super(PlainConsequentLayer, self).__init__(*params)
-        # self.register_parameter('coefficients',
-
-    #                            torch.nn.Parameter(self._coeff))
-    #    print(len(self._coeff))
 
     @property
     def coeff(self):
@@ -360,10 +344,8 @@ class AnfisNet(torch.nn.Module):
         self.num_rules = np.prod([len(mfs) for _, mfs in invardefs])  ##full comb
         self.num_rules = 25
         ###############################################################
-        # print(mfdefs[0]['()'])
         print(self.num_rules)
         self.mam_varnames = [mam_v for mam_v, _ in mamdani_out]
-        # print(mam_varnames)
         self.mam_mfdefs = [FuzzifyVariable(mam_mfs) for _, mam_mfs in mamdani_out]
         if self.hybrid:
             cl = ConsequentLayer(self.num_in, self.num_rules, self.num_out)
@@ -447,5 +429,4 @@ class AnfisNet(torch.nn.Module):
 
         y_pred = torch.bmm(self._coeff, self.weights.unsqueeze(2))
         self.y_pred = y_pred.squeeze(2)
-        # print(self.layer['fuzzify'].varmfs['distance_line'].mfdefs['mf1'].b)
         return self.y_pred

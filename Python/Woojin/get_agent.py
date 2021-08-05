@@ -33,12 +33,6 @@ def _plot_mfs(var_name, fv, model):
         A simple utility function to plot the MFs for a variable.
         Supply the variable name, MFs and a set of x values to plot.
     '''
-    # Sort x so we only plot each x-value once:
-    # xsort, _ = x.sort()
-    #    for mfname, yvals in fv.fuzzify(xsort):
-    #        temp = 'mf5'
-    #        if (mfname == temp) is False:
-    #            plt.plot(xsort.tolist(), yvals.tolist(), label=mfname)
     zero_length = (model.number_of_mfs[model.input_keywords[0]])
     x = torch.zeros(10000)
     y = -5
@@ -46,8 +40,6 @@ def _plot_mfs(var_name, fv, model):
         x[i] = torch.tensor(y)
         y += 0.001
     for mfname, yvals in fv.fuzzify(x):
-        #        print(mfname)
-        #        print(yvals)
         temp = 'mf{}'.format(zero_length)
         if (mfname == temp) is False:
             plt.plot(x, yvals.tolist(), label=mfname)
@@ -64,7 +56,6 @@ def plot_all_mfs(model):
 
 def weight_mod(agent):
     randomlist = random.sample(range(0, len(agent.critic.linear1.weight)), int(len(agent.critic.linear1.weight) / 2))
-    # kai =torch.nn.init.kaiming_normal_(torch.empty(1,4, requires_grad=True), a=math.sqrt(5), mode='fan_in', nonlinearity='leaky_relu')
     with torch.no_grad():
         for num in randomlist:
             your_new_weights = torch.nn.init.kaiming_normal_(torch.empty(1, 4, requires_grad=True), a=math.sqrt(5))
@@ -73,28 +64,11 @@ def weight_mod(agent):
 
 
 def ddpg(a, b, c, reward, done, agent, action, total_reward, over_fit, dis_error):
-    #    print(a)
-    #    print(b)
-    #    print(c)
-    #    print(reward)
-    #    print(done)
-
-    #    if over_fit == 1:
-    #        agent = weight_mod(agent)
-
     batch_size = 128
-    #    agent = torch.load('models/anfis_ddpg.model')
     state = agent.curr_states
     new_state = np.array([a, b, c])
-    #    print(state)
-    #    print(new_state)
     agent.curr_states = new_state
-    #    action = np.array([np.float64(agent.get_action(new_state))])
-    # reward = np.float64(reward)
-    #    print(len(agent.memory))
     agent.memory.push(state, action, reward, new_state, done)
-    #    states, actions, rewards, next_states, _ = agent.memory.sample(reward)
-    #    print(len(agent.memory))
 
     if len(agent.memory) > batch_size and dis_error > 0.1:
         agent.update(batch_size)
