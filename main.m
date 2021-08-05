@@ -1,4 +1,4 @@
 startup;
-JACKAL_dynamic_model;
 python_setup;
+JACKAL_dynamic_model;
 RLLOOP;
