@@ -12,10 +12,8 @@ import itertools
 from collections import OrderedDict
 
 import numpy as np
-
 import torch
 import torch.nn.functional as F
-from random import sample
 
 dtype = torch.float
 
@@ -25,6 +23,7 @@ class FuzzifyVariable(torch.nn.Module):
         Represents a single fuzzy variable, holds a list of its MFs.
         Forward pass will then fuzzify the input (value for each MF).
     '''
+
     def __init__(self, mfdefs):
         super(FuzzifyVariable, self).__init__()
         if isinstance(mfdefs, list):  # No MF names supplied
@@ -58,7 +57,7 @@ class FuzzifyVariable(torch.nn.Module):
         '''
         for mfname, mfdef in self.mfdefs.items():
             yvals = mfdef(x)
-            yield(mfname, yvals)
+            yield (mfname, yvals)
 
     def forward(self, x):
         '''
@@ -81,6 +80,7 @@ class FuzzifyLayer(torch.nn.Module):
         We pad the variables so they all seem to have the same number of MFs,
         as this allows us to put all results in the same tensor.
     '''
+
     def __init__(self, varmfs, varnames=None):
         super(FuzzifyLayer, self).__init__()
         if not varnames:
@@ -91,7 +91,7 @@ class FuzzifyLayer(torch.nn.Module):
         for var in varmfs:
             var.pad_to(maxmfs)
         self.varmfs = torch.nn.ModuleDict(zip(self.varnames, varmfs))
-        #print(self.varmfs)
+        # print(self.varmfs)
 
     @property
     def num_in(self):
@@ -112,9 +112,9 @@ class FuzzifyLayer(torch.nn.Module):
             r.append('Variable {}'.format(varname))
             for mfname, mfdef in members.mfdefs.items():
                 r.append('- {}: {}({})'.format(mfname,
-                         mfdef.__class__.__name__,
-                         ', '.join(['{}={}'.format(n, p.item())
-                                   for n, p in mfdef.named_parameters()])))
+                                               mfdef.__class__.__name__,
+                                               ', '.join(['{}={}'.format(n, p.item())
+                                                          for n, p in mfdef.named_parameters()])))
         return '\n'.join(r)
 
     def forward(self, x):
@@ -123,9 +123,9 @@ class FuzzifyLayer(torch.nn.Module):
             y.shape = n_cases * n_in * n_mfs
         '''
 
-        assert x.shape[1] == self.num_in,\
+        assert x.shape[1] == self.num_in, \
             '{} is wrong no. of input values'.format(self.num_in)
-        y_pred = torch.stack([var(x[:, i:i+1])
+        y_pred = torch.stack([var(x[:, i:i + 1])
                               for i, var in enumerate(self.varmfs.values())],
                              dim=1)
         return y_pred
@@ -136,6 +136,7 @@ class AntecedentLayer(torch.nn.Module):
         Form the 'rules' by taking all possible combinations of the MFs
         for each variable. Forward pass then calculates the fire-strengths.
     '''
+
     def __init__(self, varlist):
         super(AntecedentLayer, self).__init__()
         # Count the (actual) mfs for each variable:
@@ -143,19 +144,19 @@ class AntecedentLayer(torch.nn.Module):
         # Now make the MF indices for each rule:
 
         #######full combinations of rule bases
-    #    mf_indices = itertools.product(*[range(n) for n in mf_count])
-    #    print(*mf_indices)
-        #I can reduce the rules at here but still have some problems
-    #    mf_indices = list(mf_indices)
-    #    mf_indices = sample(mf_indices, 35)
-    #    mf_indices[0] = (0,0,0,0,3)
-    #    print(mf_indices)
-        mf_indices = [(0,0,5),(0,1,5),(0,2,5),(0,3,5),(0,4,5),
-                      (1,5,0),(1,5,1),(1,5,2),(1,5,3),(1,5,4),
-                      (2,5,0),(2,5,1),(2,5,2),(2,5,3),(2,5,4),
-                      (3,5,0),(3,5,1),(3,5,2),(3,5,3),(0,5,4),
-                      (4,0,5),(4,1,5),(4,2,5),(4,3,5),(4,4,5),]
-    #    self.mf_indices = torch.tensor((mf_indices))
+        #    mf_indices = itertools.product(*[range(n) for n in mf_count])
+        #    print(*mf_indices)
+        # I can reduce the rules at here but still have some problems
+        #    mf_indices = list(mf_indices)
+        #    mf_indices = sample(mf_indices, 35)
+        #    mf_indices[0] = (0,0,0,0,3)
+        #    print(mf_indices)
+        mf_indices = [(0, 0, 5), (0, 1, 5), (0, 2, 5), (0, 3, 5), (0, 4, 5),
+                      (1, 5, 0), (1, 5, 1), (1, 5, 2), (1, 5, 3), (1, 5, 4),
+                      (2, 5, 0), (2, 5, 1), (2, 5, 2), (2, 5, 3), (2, 5, 4),
+                      (3, 5, 0), (3, 5, 1), (3, 5, 2), (3, 5, 3), (0, 5, 4),
+                      (4, 0, 5), (4, 1, 5), (4, 2, 5), (4, 3, 5), (4, 4, 5), ]
+        #    self.mf_indices = torch.tensor((mf_indices))
 
         ########popping one rule base
 
@@ -167,17 +168,17 @@ class AntecedentLayer(torch.nn.Module):
         # 3 = 'near_right'
         # 4 = 'far_right'
         # 5 = 'none'
-        mf_out = [-3,-2,0,2,3,
-                  -3,-2,-1,0,1,
-                  -2,-1,0,1,2,
-                  -1,0,1,2,3,
-                  3,2,0,-2,-3]
+        mf_out = [-3, -2, 0, 2, 3,
+                  -3, -2, -1, 0, 1,
+                  -2, -1, 0, 1, 2,
+                  -1, 0, 1, 2, 3,
+                  3, 2, 0, -2, -3]
 
         self.mf_indices = torch.tensor(list(mf_indices))
         self.mf_out = mf_out
         # mf_indices.shape is n_rules * n_in
         print(mf_count)
-    #    print(list(mf_indices))
+        #    print(list(mf_indices))
         print(len(self.mf_indices))
 
     def num_rules(self):
@@ -208,7 +209,7 @@ class AntecedentLayer(torch.nn.Module):
         # ants.shape is n_cases * n_rules * n_in
         # Last, take the AND (= product) for each rule-antecedent
         rules = torch.prod(ants, dim=2)
-    #    print(rules[0])
+        #    print(rules[0])
         return rules
 
 
@@ -218,10 +219,11 @@ class ConsequentLayer(torch.nn.Module):
         Hybrid learning, so use MSE (not BP) to adjust coefficients.
         Hence, coeffs are no longer parameters for backprop.
     '''
+
     def __init__(self, d_in, d_rule, d_out):
         super(ConsequentLayer, self).__init__()
         c_shape = torch.Size([d_rule, d_out, d_in + 1])
-    #    c_shape = torch.Size([d_rule, d_out, 1])
+        #    c_shape = torch.Size([d_rule, d_out, 1])
         self._coeff = torch.zeros(c_shape, dtype=dtype, requires_grad=True)
 
     @property
@@ -240,8 +242,8 @@ class ConsequentLayer(torch.nn.Module):
                    a coefficient for each input variable, plus a constant
         '''
         assert new_coeff.shape == self.coeff.shape, \
-            'Coeff shape should be {}, but is actually {}'\
-            .format(self.coeff.shape, new_coeff.shape)
+            'Coeff shape should be {}, but is actually {}' \
+                .format(self.coeff.shape, new_coeff.shape)
         self._coeff = new_coeff
 
     def fit_coeff(self, x, weights, y_actual):
@@ -270,7 +272,7 @@ class ConsequentLayer(torch.nn.Module):
             raise e
         coeff_2d = coeff_2d[0:weighted_x_2d.shape[1]]
         # Reshape to 3D tensor: divide by rules, n_in+1, then swap last 2 dims
-        self.coeff = coeff_2d.view(weights.shape[1], x.shape[1]+1, -1)\
+        self.coeff = coeff_2d.view(weights.shape[1], x.shape[1] + 1, -1) \
             .transpose(1, 2)
         # coeff dim is thus: n_rules * n_out * (n_in+1)
 
@@ -293,12 +295,13 @@ class PlainConsequentLayer(ConsequentLayer):
         A linear layer to represent the TSK consequents.
         Not hybrid learning, so coefficients are backprop-learnable parameters.
     '''
+
     def __init__(self, *params):
         super(PlainConsequentLayer, self).__init__(*params)
-        #self.register_parameter('coefficients',
+        # self.register_parameter('coefficients',
+
     #                            torch.nn.Parameter(self._coeff))
     #    print(len(self._coeff))
-
 
     @property
     def coeff(self):
@@ -311,7 +314,7 @@ class PlainConsequentLayer(ConsequentLayer):
     def fit_coeff(self, x, weights, y_actual):
         '''
         '''
-        assert False,\
+        assert False, \
             'Not hybrid learning: I\'m using BP to learn coefficients'
 
 
@@ -321,6 +324,7 @@ class WeightedSumLayer(torch.nn.Module):
         This could/should be layer 5 of the Anfis net.
         I don't actually use this class, since it's just one line of code.
     '''
+
     def __init__(self):
         super(WeightedSumLayer, self).__init__()
 
@@ -341,6 +345,7 @@ class AnfisNet(torch.nn.Module):
         The forward pass maps inputs to outputs based on current settings,
         and then fit_coeff will adjust the TSK coeff using LSE.
     '''
+
     def __init__(self, description, invardefs, outvarnames, mamdani_out, input_keywords, number_of_mfs, hybrid=True):
         super(AnfisNet, self).__init__()
         self.description = description
@@ -352,13 +357,13 @@ class AnfisNet(torch.nn.Module):
         self.input_keywords = input_keywords
         self.number_of_mfs = number_of_mfs
         #######setting number of rule base for anfis structure
-        self.num_rules = np.prod([len(mfs) for _, mfs in invardefs]) ##full comb
+        self.num_rules = np.prod([len(mfs) for _, mfs in invardefs])  ##full comb
         self.num_rules = 25
         ###############################################################
-        #print(mfdefs[0]['()'])
+        # print(mfdefs[0]['()'])
         print(self.num_rules)
         self.mam_varnames = [mam_v for mam_v, _ in mamdani_out]
-        #print(mam_varnames)
+        # print(mam_varnames)
         self.mam_mfdefs = [FuzzifyVariable(mam_mfs) for _, mam_mfs in mamdani_out]
         if self.hybrid:
             cl = ConsequentLayer(self.num_in, self.num_rules, self.num_out)
@@ -370,7 +375,7 @@ class AnfisNet(torch.nn.Module):
             # normalisation layer is just implemented as a function.
             ('consequent', cl),
             # weighted-sum layer is just implemented as a function.
-            ]))
+        ]))
 
     @property
     def num_out(self):
@@ -412,7 +417,7 @@ class AnfisNet(torch.nn.Module):
         rule_ants = self.layer['rules'].extra_repr(vardefs).split('\n')
         for i, crow in enumerate(self.layer['consequent'].coeff):
             rstr.append('Rule {:2d}: IF {}'.format(i, rule_ants[i]))
-            rstr.append(' '*9+'THEN {}'.format(crow.tolist()))
+            rstr.append(' ' * 9 + 'THEN {}'.format(crow.tolist()))
         return '\n'.join(rstr)
 
     def forward(self, x):
@@ -430,11 +435,11 @@ class AnfisNet(torch.nn.Module):
         with torch.no_grad():
             for i in range(25):
                 self._coeff2[i][0][0].copy_(self.mam_mfdefs[self.layer['rules'].mf_out[i] + 3].mfdefs['mf0'].b)
-        self._coeff2 = self._coeff2.transpose(0,2)
+        self._coeff2 = self._coeff2.transpose(0, 2)
 
         c_shape = torch.Size([25, 1, len(self.weights.unsqueeze(2))])
         self._coeff = torch.zeros(c_shape, dtype=dtype, requires_grad=True)
-        self._coeff = self._coeff.transpose(0,2)
+        self._coeff = self._coeff.transpose(0, 2)
 
         with torch.no_grad():
             for j in range(len(self.weights.unsqueeze(2))):
@@ -442,5 +447,5 @@ class AnfisNet(torch.nn.Module):
 
         y_pred = torch.bmm(self._coeff, self.weights.unsqueeze(2))
         self.y_pred = y_pred.squeeze(2)
-        #print(self.layer['fuzzify'].varmfs['distance_line'].mfdefs['mf1'].b)
+        # print(self.layer['fuzzify'].varmfs['distance_line'].mfdefs['mf1'].b)
         return self.y_pred

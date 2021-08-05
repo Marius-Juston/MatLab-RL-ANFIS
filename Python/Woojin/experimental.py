@@ -5,12 +5,14 @@
     @author: James Power <james.power@mu.ie> Apr 12 18:13:10 2019
 """
 
-import matplotlib.pyplot as plt
 import time
+
+import matplotlib.pyplot as plt
 import torch
 import torch.nn.functional as F
 
 dtype = torch.float
+
 
 def mfs_print(model):
     for i in range(len(model.input_keywords)):
@@ -24,62 +26,71 @@ def _mk_param(val):
         val = val.item()
     return torch.nn.Parameter(torch.tensor(val, dtype=torch.float))
 
-def averaging(model,input):
-    #far
+
+def averaging(model, input):
+    # far
     left = abs(model.layer['fuzzify'].varmfs[input].mfdefs['mf1'].a.item())
     right = abs(model.layer['fuzzify'].varmfs[input].mfdefs['mf3'].d.item())
     avg = (left + right) / 2
     left = -avg
     right = avg
     with torch.no_grad():
-        model.layer['fuzzify'].varmfs[input].mfdefs['mf1'].a.copy_(torch.tensor(left,dtype=torch.float))
-        model.layer['fuzzify'].varmfs[input].mfdefs['mf3'].d.copy_(torch.tensor(right,dtype=torch.float))
+        model.layer['fuzzify'].varmfs[input].mfdefs['mf1'].a.copy_(torch.tensor(left, dtype=torch.float))
+        model.layer['fuzzify'].varmfs[input].mfdefs['mf3'].d.copy_(torch.tensor(right, dtype=torch.float))
 
-    #close far
+    # close far
     left = abs(model.layer['fuzzify'].varmfs[input].mfdefs['mf1'].b.item())
     right = abs(model.layer['fuzzify'].varmfs[input].mfdefs['mf3'].c.item())
     avg = (left + right) / 2
     left = -avg
     right = avg
     with torch.no_grad():
-        model.layer['fuzzify'].varmfs[input].mfdefs['mf1'].b.copy_(torch.tensor(left,dtype=torch.float))
-        model.layer['fuzzify'].varmfs[input].mfdefs['mf3'].c.copy_(torch.tensor(right,dtype=torch.float))
+        model.layer['fuzzify'].varmfs[input].mfdefs['mf1'].b.copy_(torch.tensor(left, dtype=torch.float))
+        model.layer['fuzzify'].varmfs[input].mfdefs['mf3'].c.copy_(torch.tensor(right, dtype=torch.float))
 
-    #near
+    # near
     left = abs(model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].a.item())
     right = abs(model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].d.item())
     avg = (left + right) / 2
     left = -avg
     right = avg
     with torch.no_grad():
-        model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].a.copy_(torch.tensor(left,dtype=torch.float))
-        model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].d.copy_(torch.tensor(right,dtype=torch.float))
+        model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].a.copy_(torch.tensor(left, dtype=torch.float))
+        model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].d.copy_(torch.tensor(right, dtype=torch.float))
 
-    #close_near
+    # close_near
     left = abs(model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].b.item())
     right = abs(model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].c.item())
     avg = (left + right) / 2
     left = -avg
     right = avg
     with torch.no_grad():
-        model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].b.copy_(torch.tensor(left,dtype=torch.float))
-        model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].c.copy_(torch.tensor(right,dtype=torch.float))
+        model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].b.copy_(torch.tensor(left, dtype=torch.float))
+        model.layer['fuzzify'].varmfs[input].mfdefs['mf2'].c.copy_(torch.tensor(right, dtype=torch.float))
+
 
 def mfs_constraint(model):
-
     for i in range(len(model.input_keywords)):
         for j in range(model.number_of_mfs[model.input_keywords[i]]):
             averaging(model, model.input_keywords[i])
 
-            model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf0'].c = torch.tensor(model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf1'].a.item())
-            model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf0'].d = torch.tensor(model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf1'].b.item())
-            model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf1'].c = torch.tensor(model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf2'].a.item())
+            model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf0'].c = torch.tensor(
+                model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf1'].a.item())
+            model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf0'].d = torch.tensor(
+                model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf1'].b.item())
+            model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf1'].c = torch.tensor(
+                model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf2'].a.item())
 
-            model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf1'].d = torch.tensor(model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf2'].b.item())
-            model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf3'].a = torch.tensor(model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf2'].c.item())
-            model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf3'].b = torch.tensor(model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf2'].d.item())
-            model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf4'].a = torch.tensor(model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf3'].c.item())
-            model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf4'].b = torch.tensor(model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf3'].d.item())
+            model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf1'].d = torch.tensor(
+                model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf2'].b.item())
+            model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf3'].a = torch.tensor(
+                model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf2'].c.item())
+            model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf3'].b = torch.tensor(
+                model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf2'].d.item())
+            model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf4'].a = torch.tensor(
+                model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf3'].c.item())
+            model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf4'].b = torch.tensor(
+                model.layer['fuzzify'].varmfs[model.input_keywords[i]].mfdefs['mf3'].d.item())
 
 
 class TwoLayerNet(torch.nn.Module):
@@ -87,6 +98,7 @@ class TwoLayerNet(torch.nn.Module):
         From the pytorch examples, a simjple 2-layer neural net.
         https://pytorch.org/tutorials/beginner/pytorch_with_examples.html
     '''
+
     def __init__(self, d_in, hidden_size, d_out):
         super(TwoLayerNet, self).__init__()
         self.linear1 = torch.nn.Linear(d_in, hidden_size)
@@ -96,7 +108,6 @@ class TwoLayerNet(torch.nn.Module):
         h_relu = self.linear1(x).clamp(min=0)
         y_pred = self.linear2(h_relu)
         return y_pred
-
 
 
 def linear_model(x, y, epochs=200, hidden_size=10):
@@ -151,11 +162,11 @@ def _plot_mfs(var_name, fv, x):
         Supply the variable name, MFs and a set of x values to plot.
     '''
     # Sort x so we only plot each x-value once:
-    #xsort, _ = x.sort()
-#    for mfname, yvals in fv.fuzzify(xsort):
-#        temp = 'mf5'
-#        if (mfname == temp) is False:
-#            plt.plot(xsort.tolist(), yvals.tolist(), label=mfname)
+    # xsort, _ = x.sort()
+    #    for mfname, yvals in fv.fuzzify(xsort):
+    #        temp = 'mf5'
+    #        if (mfname == temp) is False:
+    #            plt.plot(xsort.tolist(), yvals.tolist(), label=mfname)
 
     x = torch.zeros(10000)
     y = -5
@@ -163,8 +174,8 @@ def _plot_mfs(var_name, fv, x):
         x[i] = torch.tensor(y)
         y += 0.001
     for mfname, yvals in fv.fuzzify(x):
-#        print(mfname)
-#        print(yvals)
+        #        print(mfname)
+        #        print(yvals)
         temp = 'mf5'
         if (mfname == temp) is False:
             plt.plot(x, yvals.tolist(), label=mfname)
@@ -180,17 +191,17 @@ def plot_all_mfs(model, x):
 
 
 def calc_error(y_pred, y_actual):
-    #change 0 to 1e-12
+    # change 0 to 1e-12
     with torch.no_grad():
         tot_loss = F.mse_loss(y_pred, y_actual)
         rmse = torch.sqrt(tot_loss).item()
         perc_loss = torch.mean(100. * torch.abs((y_pred - y_actual)
-                               / y_actual))
-    #    perc_loss = 0.1
-        ss_total = torch.sum((y_actual - torch.mean(y_actual))**2)
-        ss_regression = torch.sum((y_actual - y_pred)**2)
+                                                / y_actual))
+        #    perc_loss = 0.1
+        ss_total = torch.sum((y_actual - torch.mean(y_actual)) ** 2)
+        ss_regression = torch.sum((y_actual - y_pred) ** 2)
         rsq = (1 - (ss_regression / ss_total)) * 100
-    return(tot_loss, rmse, perc_loss,rsq)
+    return (tot_loss, rmse, perc_loss, rsq)
 
 
 def test_anfis(model, data, show_plots=False):
@@ -202,9 +213,9 @@ def test_anfis(model, data, show_plots=False):
         plot_all_mfs(model, x)
     print('### Testing for {} cases'.format(x.shape[0]))
     y_pred = model(x)
-    mse, rmse, perc_loss, rsq= calc_error(y_pred, y_actual)
+    mse, rmse, perc_loss, rsq = calc_error(y_pred, y_actual)
     print('MSE={:.5f}, RMSE={:.5f} ={:.2f}%, RSQ ={:.2f}% '
-          .format(mse, rmse, perc_loss,rsq))
+          .format(mse, rmse, perc_loss, rsq))
     if show_plots:
         plotResults(y_actual, y_pred)
 
@@ -224,7 +235,7 @@ def train_anfis_with(model, data, optimizer, criterion,
           format(epochs, data.dataset.tensors[0].shape[0]))
     for t in range(epochs):
         # Process each mini-batch in turn:
-        #do like model.layer['fuzzify'].varmfs['x0'].mfdefs['mf0'].b
+        # do like model.layer['fuzzify'].varmfs['x0'].mfdefs['mf0'].b
         #  = model.layer['fuzzify'].varmfs['x0'].mfdefs['mf0'].a to make symmetric
         for x, y_actual in data:
             y_pred = model(x)
@@ -237,33 +248,33 @@ def train_anfis_with(model, data, optimizer, criterion,
 
         # Epoch ending, so now fit the coefficients based on all data:
 
-        #mfs_print(model)
-        #print(list(model.parameters()))
+        # mfs_print(model)
+        # print(list(model.parameters()))
         x, y_actual = data.dataset.tensors
         mfs_constraint(model)
-    #    with torch.no_grad():
-    #        model.fit_coeff(x, y_actual)
-        #print(model.layer['consequent'].coefficients)
+        #    with torch.no_grad():
+        #        model.fit_coeff(x, y_actual)
+        # print(model.layer['consequent'].coefficients)
 
-        #if t == 5:
-            #model.layer['consequent'].coefficients = torch.nn.Parameter(torch.zeros(torch.Size([25, 1, 4]), dtype=dtype, requires_grad=True))
-            #self._coeff = torch.zeros(torch.Size([25, 1, 4]), dtype=dtype, requires_grad=True)
+        # if t == 5:
+        # model.layer['consequent'].coefficients = torch.nn.Parameter(torch.zeros(torch.Size([25, 1, 4]), dtype=dtype, requires_grad=True))
+        # self._coeff = torch.zeros(torch.Size([25, 1, 4]), dtype=dtype, requires_grad=True)
 
         # Get the error rate for the whole batch:
         y_pred = model(x)
         mse, rmse, perc_loss, rsq = calc_error(y_pred, y_actual)
         errors.append(perc_loss)
         # Print some progress information as the net is trained:
-    #    print(model.layer['fuzzify'].varmfs['theta_near'].mfdefs['mf2'].b.requires_grad)
-    #    print(model.layer['fuzzify'].varmfs['theta_near'].mfdefs['mf2'].pretty())
+        #    print(model.layer['fuzzify'].varmfs['theta_near'].mfdefs['mf2'].b.requires_grad)
+        #    print(model.layer['fuzzify'].varmfs['theta_near'].mfdefs['mf2'].pretty())
         temp.append(mse.item())
-        time123 = ( (time.clock() - 0.5)    )
+        time123 = ((time.clock() - 0.5))
         temp1.append(time123)
         temp2.append(rsq.item())
         mfs_print(model)
         if epochs < 30 or t % 10 == 0:
             print('epoch {:4d}: MSE={:.5f}, RMSE={:.5f} ={:.2f}%, RSQ ={:.2f}% '
-                  .format(t, mse, rmse, perc_loss,rsq))
+                  .format(t, mse, rmse, perc_loss, rsq))
         #    print(perc_loss)
     # End of training, so graph the results:
 
@@ -288,13 +299,13 @@ def train_anfis(model, data, epochs=500, show_plots=False):
     '''
         Train the given model using the given (x,y) data.
     '''
-    #x, y_actual = data.dataset.tensors
-    #if show_plots:
+    # x, y_actual = data.dataset.tensors
+    # if show_plots:
     #    plot_all_mfs(model, x)
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-5, momentum=0.99)
     # optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
     criterion = torch.nn.MSELoss(reduction='sum')
-#    print(model.parameters())
+    #    print(model.parameters())
     train_anfis_with(model, data, optimizer, criterion, epochs, show_plots)
 
 

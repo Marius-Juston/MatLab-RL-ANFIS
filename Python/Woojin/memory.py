@@ -1,6 +1,8 @@
-import numpy as np
-from collections import deque
 import random
+from collections import deque
+
+import numpy as np
+
 
 class Memory:
     def __init__(self, max_size):
@@ -22,14 +24,13 @@ class Memory:
         for experience in batch:
             state, action, reward, next_state, done = experience
             state_batch.append(state)
-            if (isinstance( action, np.float32 )):
+            if (isinstance(action, np.float32)):
                 action = np.array([np.float64(action)])
             action_batch.append(action)
 
             reward_batch.append(reward)
             next_state_batch.append(next_state)
             done_batch.append(done)
-
 
         return state_batch, action_batch, reward_batch, next_state_batch, done_batch
 

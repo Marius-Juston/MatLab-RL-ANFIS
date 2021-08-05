@@ -9,20 +9,23 @@ import torch
 
 from anfis import AnfisNet
 
+
 class Zero(torch.nn.Module):
     '''
         this is for NONE feature, it would be the last membership function
         that outputs 1 to use NONE feature for each rule base (And)
     '''
+
     def __init__(self):
         super(Zero, self).__init__()
 
     def forward(self, x):
         yvals = torch.ones_like(x)
         return yvals
+
+
 def make_zero():
     return Zero()
-
 
 
 def _mk_param(val):
@@ -38,13 +41,14 @@ class GaussMembFunc(torch.nn.Module):
             mu, the mean (center)
             sigma, the standard deviation.
     '''
+
     def __init__(self, mu, sigma):
         super(GaussMembFunc, self).__init__()
         self.register_parameter('mu', _mk_param(mu))
         self.register_parameter('sigma', _mk_param(sigma))
 
     def forward(self, x):
-        val = torch.exp(-torch.pow(x - self.mu, 2) / (2 * self.sigma**2))
+        val = torch.exp(-torch.pow(x - self.mu, 2) / (2 * self.sigma ** 2))
         return val
 
     def pretty(self):
@@ -63,6 +67,7 @@ class BellMembFunc(torch.nn.Module):
             b, controls the slope at the crossover point (which is -b/2a)
             c, the center point
     '''
+
     def __init__(self, a, b, c):
         super(BellMembFunc, self).__init__()
         self.register_parameter('a', _mk_param(a))
@@ -80,7 +85,7 @@ class BellMembFunc(torch.nn.Module):
         return grad
 
     def forward(self, x):
-        dist = torch.pow((x - self.c)/self.a, 2)
+        dist = torch.pow((x - self.c) / self.a, 2)
         return torch.reciprocal(1 + torch.pow(dist, self.b))
 
     def pretty(self):
@@ -92,7 +97,7 @@ def make_bell_mfs(a, b, clist):
     temp = [BellMembFunc(a, b, c) for c in clist]
     temp.append(Zero())
     return temp
-    #return [BellMembFunc(a, b, c) for c in clist]
+    # return [BellMembFunc(a, b, c) for c in clist]
 
 
 class TriangularMembFunc(torch.nn.Module):
@@ -102,9 +107,10 @@ class TriangularMembFunc(torch.nn.Module):
             b, midpoint, mu(x) = 1
             c, right foot, mu(x) = 0
     '''
+
     def __init__(self, a, b, c):
         super(TriangularMembFunc, self).__init__()
-        assert a <= b and b <= c,\
+        assert a <= b and b <= c, \
             'Triangular parameters: must have a <= b <= c.'
         self.register_parameter('a', _mk_param(a))
         self.register_parameter('b', _mk_param(b))
@@ -115,7 +121,7 @@ class TriangularMembFunc(torch.nn.Module):
         '''
             Construct a triangle MF with given width-of-base and center
         '''
-        return TriangularMembFunc(center-width, center, center+width)
+        return TriangularMembFunc(center - width, center, center + width)
 
     def forward(self, x):
         return torch.where(
@@ -133,7 +139,7 @@ class TriangularMembFunc(torch.nn.Module):
 
 def make_tri_mfs(width, clist):
     '''Return a list of triangular mfs, same width, list of centers'''
-    return [TriangularMembFunc(c-width/2, c, c+width/2) for c in clist]
+    return [TriangularMembFunc(c - width / 2, c, c + width / 2) for c in clist]
 
 
 class TrapezoidalMembFunc(torch.nn.Module):
@@ -146,9 +152,10 @@ class TrapezoidalMembFunc(torch.nn.Module):
             from c to d: slopes from 1 down to 0
             to the right of d: always 0
     '''
+
     def __init__(self, a, b, c, d, constraint=True):
         super(TrapezoidalMembFunc, self).__init__()
-        assert a <= b and b <= c and c <= d,\
+        assert a <= b and b <= c and c <= d, \
             'Trapezoidal parameters: must have a <= b <= c <= d.'
         if constraint == 1:
             self.a = a
@@ -176,25 +183,24 @@ class TrapezoidalMembFunc(torch.nn.Module):
             self.c = c
             self.d = d
 
-#        else:
-#            self.register_parameter('a', _mk_param(a))
-#            self.b = b
-#            self.c = c
-#            self.d = d
+    #        else:
+    #            self.register_parameter('a', _mk_param(a))
+    #            self.b = b
+    #            self.c = c
+    #            self.d = d
 
-
-#    def __init__(self, a, b, c, d, constraint=True):
-#        super(TrapezoidalMembFunc, self).__init__()
-#        assert a <= b and b <= c and c <= d,\
-#            'Trapezoidal parameters: must have a <= b <= c <= d.'
-#        self.register_parameter('a', _mk_param(a))
-#        if constraint:
-#            self.register_parameter('b', _mk_param(b))
-#            self.register_parameter('c', _mk_param(c))
-#        else:
-#            self.b = b
-#            self.c = c
-#        self.register_parameter('d', _mk_param(d))
+    #    def __init__(self, a, b, c, d, constraint=True):
+    #        super(TrapezoidalMembFunc, self).__init__()
+    #        assert a <= b and b <= c and c <= d,\
+    #            'Trapezoidal parameters: must have a <= b <= c <= d.'
+    #        self.register_parameter('a', _mk_param(a))
+    #        if constraint:
+    #            self.register_parameter('b', _mk_param(b))
+    #            self.register_parameter('c', _mk_param(c))
+    #        else:
+    #            self.b = b
+    #            self.c = c
+    #        self.register_parameter('d', _mk_param(d))
 
     @staticmethod
     def symmetric(topwidth, slope, midpt):
@@ -226,8 +232,8 @@ class TrapezoidalMembFunc(torch.nn.Module):
     def forward(self, x):
         yvals = torch.zeros_like(x)
         if self.a < self.b:
-        #    print((self.a < x).type(torch.ByteTensor) )
-        #    print(torch.ByteTensor([True,1,0,0,1]) & torch.ByteTensor([True,1,1,1,1]))
+            #    print((self.a < x).type(torch.ByteTensor) )
+            #    print(torch.ByteTensor([True,1,0,0,1]) & torch.ByteTensor([True,1,1,1,1]))
             incr = (self.a < x) & (x <= self.b)
             yvals[incr] = (x[incr] - self.a) / (self.b - self.a)
         if self.b < self.c:
@@ -236,21 +242,21 @@ class TrapezoidalMembFunc(torch.nn.Module):
         if self.c < self.d:
             decr = (self.c <= x) & (x < self.d)
             yvals[decr] = (self.d - x[decr]) / (self.d - self.c)
-#        if self.a < self.b:
-#            print((self.a < x).type(torch.ByteTensor) )
-#            print(torch.ByteTensor([True,1,0,0,1]) & torch.ByteTensor([True,1,1,1,1]))
-#            incr = torch.ByteTensor((self.a < x)) & torch.ByteTensor((x <= self.b))
-#            yvals[incr] = (x[incr] - self.a) / (self.b - self.a)
-#        if self.b < self.c:
-#            decr = torch.ByteTensor((self.b < x)) & torch.ByteTensor((x < self.c))
-#            yvals[decr] = 1
-#        if self.c < self.d:
-#            decr = torch.ByteTensor((self.c <= x)) & torch.ByteTensor((x < self.d))
-#            yvals[decr] = (self.d - x[decr]) / (self.d - self.c)
+        #        if self.a < self.b:
+        #            print((self.a < x).type(torch.ByteTensor) )
+        #            print(torch.ByteTensor([True,1,0,0,1]) & torch.ByteTensor([True,1,1,1,1]))
+        #            incr = torch.ByteTensor((self.a < x)) & torch.ByteTensor((x <= self.b))
+        #            yvals[incr] = (x[incr] - self.a) / (self.b - self.a)
+        #        if self.b < self.c:
+        #            decr = torch.ByteTensor((self.b < x)) & torch.ByteTensor((x < self.c))
+        #            yvals[decr] = 1
+        #        if self.c < self.d:
+        #            decr = torch.ByteTensor((self.c <= x)) & torch.ByteTensor((x < self.d))
+        #            yvals[decr] = (self.d - x[decr]) / (self.d - self.c)
         return yvals
 
     def pretty(self):
-        return 'TrapezoidalMembFunc {} {} {} {}'.\
+        return 'TrapezoidalMembFunc {} {} {} {}'. \
             format(self.a, self.b, self.c, self.d)
 
 
@@ -259,8 +265,9 @@ def make_trap_mfs(width, slope, clist):
     temp = [TrapezoidalMembFunc.symmetric(width, slope, c) for c in clist]
     temp.append(Zero())
     return temp
-#    return [TrapezoidalMembFunc.symmetric(width, slope, c) for c in clist]
 
+
+#    return [TrapezoidalMembFunc.symmetric(width, slope, c) for c in clist]
 
 
 # Make the classes available via (controlled) reflection:
@@ -281,7 +288,7 @@ def make_anfis(x, num_mfs=5, num_out=1, hybrid=True):
     num_invars = x.shape[1]
     minvals, _ = torch.min(x, dim=0)
     maxvals, _ = torch.max(x, dim=0)
-    ranges = maxvals-minvals
+    ranges = maxvals - minvals
     invars = []
     for i in range(num_invars):
         sigma = ranges[i] / num_mfs
