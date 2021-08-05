@@ -1,0 +1,99 @@
+[System]
+Name='anfis'
+Type='sugeno'
+Version=2.0
+NumInputs=3
+NumOutputs=1
+NumRules=25
+AndMethod='prod'
+OrMethod='probor'
+ImpMethod='prod'
+AggMethod='sum'
+DefuzzMethod='wtaver'
+
+[Input1]
+Name='dis'
+Range=[-3 3]
+NumMFs=5
+MF1='far_left':'trapmf',[-4.35 -3.15 -2.85 -1.65]
+MF2='close_left':'trapmf',[-2.85 -1.65 -1.35 -0.15]
+MF3='zero':'trapmf',[-1.35 -0.15 0.15 1.35]
+MF4='close_right':'trapmf',[0.15 1.35 1.65 2.85]
+MF5='far_right':'trapmf',[1.65 2.85 3.15 4.35]
+
+[Input2]
+Name='theta_far'
+Range=[-2 2]
+NumMFs=5
+MF1='far_left':'trapmf',[-2.9 -2.1 -1.9 -1.1]
+MF2='close_left':'trapmf',[-1.9 -1.1 -0.9 -0.1]
+MF3='zero':'trapmf',[-0.9 -0.1 0.1 0.9]
+MF4='close_right':'trapmf',[0.1 0.9 1.1 1.9]
+MF5='far_right':'trapmf',[1.1 1.9 2.1 2.9]
+
+[Input3]
+Name='theta_near'
+Range=[-2 2]
+NumMFs=5
+MF1='far_left':'trapmf',[-2.9 -2.1 -1.9 -1.1]
+MF2='close_left':'trapmf',[-1.9 -1.1 -0.9 -0.1]
+MF3='zero':'trapmf',[-0.9 -0.1 0.1 0.9]
+MF4='close_right':'trapmf',[0.1 0.9 1.1 1.9]
+MF5='far_right':'trapmf',[1.1 1.9 2.1 2.9]
+
+[Output1]
+Name='output1'
+Range=[0 1]
+NumMFs=25
+MF1='mf1':'linear',[0 0 0 0]
+MF2='mf2':'linear',[0 0 0 0.125]
+MF3='mf3':'linear',[0 0 0 0.25]
+MF4='mf4':'linear',[0 0 0 0.375]
+MF5='mf5':'linear',[0 0 0 0.5]
+MF6='mf6':'linear',[0 0 0 0.625]
+MF7='mf7':'linear',[0 0 0 0.75]
+MF8='mf8':'linear',[0 0 0 0.875]
+MF9='mf9':'linear',[0 0 0 1]
+MF10='mf10':'linear',[0 0 0 0]
+MF11='mf11':'linear',[0 0 0 0.125]
+MF12='mf12':'linear',[0 0 0 0.25]
+MF13='mf13':'linear',[0 0 0 0.375]
+MF14='mf14':'linear',[0 0 0 0.5]
+MF15='mf15':'linear',[0 0 0 0.625]
+MF16='mf16':'linear',[0 0 0 0.75]
+MF17='mf17':'linear',[0 0 0 0.875]
+MF18='mf18':'linear',[0 0 0 1]
+MF19='mf19':'linear',[0 0 0 0]
+MF20='mf20':'linear',[0 0 0 0.166666666666667]
+MF21='mf21':'linear',[0 0 0 0.333333333333333]
+MF22='mf22':'linear',[0 0 0 0.5]
+MF23='mf23':'linear',[0 0 0 0.666666666666667]
+MF24='mf24':'linear',[0 0 0 0.833333333333333]
+MF25='mf25':'linear',[0 0 0 1]
+
+[Rules]
+1 1 0, 1 (1) : 1
+1 2 0, 2 (1) : 1
+1 3 0, 3 (1) : 1
+1 4 0, 4 (1) : 1
+1 5 0, 5 (1) : 1
+2 0 1, 6 (1) : 1
+2 0 2, 7 (1) : 1
+2 0 3, 8 (1) : 1
+2 0 4, 9 (1) : 1
+2 0 5, 10 (1) : 1
+3 0 1, 11 (1) : 1
+3 0 2, 12 (1) : 1
+3 0 3, 13 (1) : 1
+3 0 4, 14 (1) : 1
+3 0 5, 15 (1) : 1
+4 0 1, 16 (1) : 1
+4 0 2, 17 (1) : 1
+4 0 3, 18 (1) : 1
+4 0 4, 19 (1) : 1
+4 0 5, 20 (1) : 1
+5 1 0, 21 (1) : 1
+5 2 0, 22 (1) : 1
+5 3 0, 23 (1) : 1
+5 4 0, 24 (1) : 1
+5 5 0, 25 (1) : 1

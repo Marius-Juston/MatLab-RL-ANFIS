@@ -1,0 +1,19 @@
+actorlearningrate = -5 or -4
+critic = -3
+policy loss /10
+
+0?-30ish
+10 = -27.5
+20 -20
+
+actor -5
+critic -4
+policy loss /5
+0 = -33
+
+26 = -26.xx
+
+
+
+gain 8
+0 = -25
