@@ -1,8 +1,10 @@
+import numpy as np
 import torch.autograd
 import torch.optim as optim
+from torch.autograd import Variable
 
-from memory import *
-from model import *
+from memory import Memory
+from model import Critic
 
 
 def averaging(model, input):

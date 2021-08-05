@@ -1,4 +1,4 @@
-from model import *
+import torch
 
 
 def abc(agent):

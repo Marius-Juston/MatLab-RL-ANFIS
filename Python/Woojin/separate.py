@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from model import *
+import torch
 
 
 def generate_txt(model):

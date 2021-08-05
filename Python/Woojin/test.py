@@ -1,7 +1,7 @@
 import gym
 import torch
 
-from utils import *
+from utils import NormalizedEnv, OUNoise
 
 gym.logger.set_level(40)
 env = NormalizedEnv(gym.make("Pendulum-v0"))

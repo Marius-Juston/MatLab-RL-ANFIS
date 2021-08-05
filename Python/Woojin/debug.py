@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
-
-from memory import *
-from model import *
+import numpy as np
+import torch
 
 
 def generate_txt(model):

@@ -1,4 +1,4 @@
-from memory import *
+import numpy as np
 
 
 def ddpg(a, b, c, agent):

@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
+import torch
 
 from ddpg import DDPGagent
-from model import *
+from model import Anfis
 
 
 def generate_txt(model):

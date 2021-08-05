@@ -1,7 +1,7 @@
 import math
+import random
 
-from memory import *
-from model import *
+import torch
 
 
 def weight_mod(agent):

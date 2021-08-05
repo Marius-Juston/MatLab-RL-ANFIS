@@ -2,10 +2,12 @@ import sys
 
 import gym
 import matplotlib.pyplot as plt
+import numpy as np
+import torch
 
 from ddpg import DDPGagent
-from model import *
-from utils import *
+from model import Anfis
+from utils import NormalizedEnv, OUNoise
 
 
 def generate_txt(model):
