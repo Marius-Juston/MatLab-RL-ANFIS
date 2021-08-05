@@ -149,3 +149,9 @@ codegen/
 
 # Octave session info
 octave-workspace
+
+# DDG Reward outputs
+distance_error_max.mat
+distance_error_mean.mat
+heading_error_mean.mat
+reward_store.mat
