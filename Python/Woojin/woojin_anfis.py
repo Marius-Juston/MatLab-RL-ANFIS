@@ -81,14 +81,13 @@ def my_model():
 
 def training_data_selection(i, o):
     inputs = open(i)
-    outputs = open(o)
     inputs = csv.reader(inputs)
     num_data = len(list(inputs))
     return num_data, i, o
 
 
 def generate_txt(model):
-    coeffs = (model.layer['consequent']._coeff).tolist()  ##print final coeffs in cnsequent layer.
+    coeffs = model.layer['consequent']._coeff.tolist()  ##print final coeffs in cnsequent layer.
     with open("coeffs.txt", 'w') as output:
         for row in coeffs:
             output.write(str(row) + '\n')

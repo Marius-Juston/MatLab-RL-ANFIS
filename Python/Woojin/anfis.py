@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-'''
+"""
     ANFIS in torch: the ANFIS layers
     @author: James Power <james.power@mu.ie> Apr 12 18:13:10 2019
     Acknowledgement: twmeggs' implementation of ANFIS in Python was very
     useful in understanding how the ANFIS structures could be interpreted:
         https://github.com/twmeggs/anfis
-'''
+"""
 
 import itertools
 from collections import OrderedDict
@@ -19,10 +19,10 @@ dtype = torch.float
 
 
 class FuzzifyVariable(torch.nn.Module):
-    '''
+    """
         Represents a single fuzzy variable, holds a list of its MFs.
         Forward pass will then fuzzify the input (value for each MF).
-    '''
+    """
 
     def __init__(self, mfdefs):
         super(FuzzifyVariable, self).__init__()
@@ -34,37 +34,37 @@ class FuzzifyVariable(torch.nn.Module):
 
     @property
     def num_mfs(self):
-        '''Return the actual number of MFs (ignoring any padding)'''
+        """Return the actual number of MFs (ignoring any padding)"""
         return len(self.mfdefs)
 
     def members(self):
-        '''
+        """
             Return an iterator over this variables's membership functions.
             Yields tuples of the form (mf-name, MembFunc-object)
-        '''
+        """
         return self.mfdefs.items()
 
     def pad_to(self, new_size):
-        '''
+        """
             Will pad result of forward-pass (with zeros) so it has new_size,
             i.e. as if it had new_size MFs.
-        '''
+        """
         self.padding = new_size - len(self.mfdefs)
 
     def fuzzify(self, x):
-        '''
+        """
             Yield a list of (mf-name, fuzzy values) for these input values.
-        '''
+        """
         for mfname, mfdef in self.mfdefs.items():
             yvals = mfdef(x)
-            yield (mfname, yvals)
+            yield mfname, yvals
 
     def forward(self, x):
-        '''
+        """
             Return a tensor giving the membership value for each MF.
             x.shape: n_cases
             y.shape: n_cases * n_mfs
-        '''
+        """
         y_pred = torch.cat([mf(x) for mf in self.mfdefs.values()], dim=1)
         if self.padding > 0:
             y_pred = torch.cat([y_pred,
@@ -74,12 +74,12 @@ class FuzzifyVariable(torch.nn.Module):
 
 
 class FuzzifyLayer(torch.nn.Module):
-    '''
+    """
         A list of fuzzy variables, representing the inputs to the FIS.
         Forward pass will fuzzify each variable individually.
         We pad the variables so they all seem to have the same number of MFs,
         as this allows us to put all results in the same tensor.
-    '''
+    """
 
     def __init__(self, varmfs, varnames=None):
         super(FuzzifyLayer, self).__init__()
@@ -94,18 +94,18 @@ class FuzzifyLayer(torch.nn.Module):
 
     @property
     def num_in(self):
-        '''Return the number of input variables'''
+        """Return the number of input variables"""
         return len(self.varmfs)
 
     @property
     def max_mfs(self):
-        ''' Return the max number of MFs in any variable'''
+        """ Return the max number of MFs in any variable"""
         return max([var.num_mfs for var in self.varmfs.values()])
 
     def __repr__(self):
-        '''
+        """
             Print the variables, MFS and their parameters (for info only)
-        '''
+        """
         r = ['Input variables']
         for varname, members in self.varmfs.items():
             r.append('Variable {}'.format(varname))
@@ -117,10 +117,10 @@ class FuzzifyLayer(torch.nn.Module):
         return '\n'.join(r)
 
     def forward(self, x):
-        ''' Fuzzyify each variable's value using each of its corresponding mfs.
+        """ Fuzzyify each variable's value using each of its corresponding mfs.
             x.shape = n_cases * n_in
             y.shape = n_cases * n_in * n_mfs
-        '''
+        """
 
         assert x.shape[1] == self.num_in, \
             '{} is wrong no. of input values'.format(self.num_in)
@@ -131,10 +131,10 @@ class FuzzifyLayer(torch.nn.Module):
 
 
 class AntecedentLayer(torch.nn.Module):
-    '''
+    """
         Form the 'rules' by taking all possible combinations of the MFs
         for each variable. Forward pass then calculates the fire-strengths.
-    '''
+    """
 
     def __init__(self, varlist):
         super(AntecedentLayer, self).__init__()
@@ -188,10 +188,10 @@ class AntecedentLayer(torch.nn.Module):
         return '\n'.join(row_ants)
 
     def forward(self, x):
-        ''' Calculate the fire-strength for (the antecedent of) each rule
+        """ Calculate the fire-strength for (the antecedent of) each rule
             x.shape = n_cases * n_in * n_mfs
             y.shape = n_cases * n_rules
-        '''
+        """
         # Expand (repeat) the rule indices to equal the batch size:
         batch_indices = self.mf_indices.expand((x.shape[0], -1, -1))
         # Then use these indices to populate the rule-antecedents
@@ -203,11 +203,11 @@ class AntecedentLayer(torch.nn.Module):
 
 
 class ConsequentLayer(torch.nn.Module):
-    '''
+    """
         A simple linear layer to represent the TSK consequents.
         Hybrid learning, so use MSE (not BP) to adjust coefficients.
         Hence, coeffs are no longer parameters for backprop.
-    '''
+    """
 
     def __init__(self, d_in, d_rule, d_out):
         super(ConsequentLayer, self).__init__()
@@ -216,32 +216,32 @@ class ConsequentLayer(torch.nn.Module):
 
     @property
     def coeff(self):
-        '''
+        """
             Record the (current) coefficients for all the rules
             coeff.shape: n_rules * n_out * (n_in+1)
-        '''
+        """
         return self._coeff
 
     @coeff.setter
     def coeff(self, new_coeff):
-        '''
+        """
             Record new coefficients for all the rules
             coeff: for each rule, for each output variable:
                    a coefficient for each input variable, plus a constant
-        '''
+        """
         assert new_coeff.shape == self.coeff.shape, \
             'Coeff shape should be {}, but is actually {}' \
                 .format(self.coeff.shape, new_coeff.shape)
         self._coeff = new_coeff
 
     def fit_coeff(self, x, weights, y_actual):
-        '''
+        """
             Use LSE to solve for coeff: y_actual = coeff * (weighted)x
                   x.shape: n_cases * n_in
             weights.shape: n_cases * n_rules
             [ coeff.shape: n_rules * n_out * (n_in+1) ]
                   y.shape: n_cases * n_out
-        '''
+        """
         # Append 1 to each list of input vals, for the constant term:
         x_plus = torch.cat([x, torch.ones(x.shape[0], 1)], dim=1)
         # Shape of weighted_x is n_cases * n_rules * (n_in+1)
@@ -265,12 +265,12 @@ class ConsequentLayer(torch.nn.Module):
         # coeff dim is thus: n_rules * n_out * (n_in+1)
 
     def forward(self, x):
-        '''
+        """
             Calculate: y = coeff * x + const   [NB: no weights yet]
                   x.shape: n_cases * n_in
               coeff.shape: n_rules * n_out * (n_in+1)
                   y.shape: n_cases * n_out * n_rules
-        '''
+        """
         # Append 1 to each list of input vals, for the constant term:
         x_plus = torch.cat([x, torch.ones(x.shape[0], 1)], dim=1)
         # Need to switch dimansion for the multipy, then switch back:
@@ -279,56 +279,56 @@ class ConsequentLayer(torch.nn.Module):
 
 
 class PlainConsequentLayer(ConsequentLayer):
-    '''
+    """
         A linear layer to represent the TSK consequents.
         Not hybrid learning, so coefficients are backprop-learnable parameters.
-    '''
+    """
 
     def __init__(self, *params):
         super(PlainConsequentLayer, self).__init__(*params)
 
     @property
     def coeff(self):
-        '''
+        """
             Record the (current) coefficients for all the rules
             coeff.shape: n_rules * n_out * (n_in+1)
-        '''
+        """
         return self.coefficients
 
     def fit_coeff(self, x, weights, y_actual):
-        '''
-        '''
+        """
+        """
         assert False, \
             'Not hybrid learning: I\'m using BP to learn coefficients'
 
 
 class WeightedSumLayer(torch.nn.Module):
-    '''
+    """
         Sum the TSK for each outvar over rules, weighted by fire strengths.
         This could/should be layer 5 of the Anfis net.
         I don't actually use this class, since it's just one line of code.
-    '''
+    """
 
     def __init__(self):
         super(WeightedSumLayer, self).__init__()
 
     def forward(self, weights, tsk):
-        '''
+        """
             weights.shape: n_cases * n_rules
                 tsk.shape: n_cases * n_out * n_rules
              y_pred.shape: n_cases * n_out
-        '''
+        """
         # Add a dimension to weights to get the bmm to work:
         y_pred = torch.bmm(tsk, weights.unsqueeze(2))
         return y_pred.squeeze(2)
 
 
 class AnfisNet(torch.nn.Module):
-    '''
+    """
         This is a container for the 5 layers of the ANFIS net.
         The forward pass maps inputs to outputs based on current settings,
         and then fit_coeff will adjust the TSK coeff using LSE.
-    '''
+    """
 
     def __init__(self, description, invardefs, outvarnames, mamdani_out, input_keywords, number_of_mfs, hybrid=True):
         super(AnfisNet, self).__init__()
@@ -372,25 +372,25 @@ class AnfisNet(torch.nn.Module):
         self.layer['consequent'].coeff = new_coeff
 
     def fit_coeff(self, x, y_actual):
-        '''
+        """
             Do a forward pass (to get weights), then fit to y_actual.
             Does nothing for a non-hybrid ANFIS, so we have same interface.
-        '''
+        """
         if self.hybrid:
             self(x)
             self.layer['consequent'].fit_coeff(x, self.weights, y_actual)
 
     def input_variables(self):
-        '''
+        """
             Return an iterator over this system's input variables.
             Yields tuples of the form (var-name, FuzzifyVariable-object)
-        '''
+        """
         return self.layer['fuzzify'].varmfs.items()
 
     def output_variables(self):
-        '''
+        """
             Return an list of the names of the system's output variables.
-        '''
+        """
         return self.outvarnames
 
     def extra_repr(self):
@@ -403,11 +403,11 @@ class AnfisNet(torch.nn.Module):
         return '\n'.join(rstr)
 
     def forward(self, x):
-        '''
+        """
             Forward pass: run x thru the five layers and return the y values.
             I save the outputs from each layer to an instance variable,
             as this might be useful for comprehension/debugging.
-        '''
+        """
         self.fuzzified = self.layer['fuzzify'](x)
         self.raw_weights = self.layer['rules'](self.fuzzified)
         self.weights = F.normalize(self.raw_weights, p=1, dim=1)

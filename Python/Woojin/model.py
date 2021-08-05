@@ -26,7 +26,7 @@ class Critic(nn.Module):
         return x
 
 
-class Anfis():
+class Anfis:
     def __init__(self):
         super(Anfis, self).__init__()
 

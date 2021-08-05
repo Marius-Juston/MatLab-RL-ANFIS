@@ -24,7 +24,7 @@ class Memory:
         for experience in batch:
             state, action, reward, next_state, done = experience
             state_batch.append(state)
-            if (isinstance(action, np.float32)):
+            if isinstance(action, np.float32):
                 action = np.array([np.float64(action)])
             action_batch.append(action)
 

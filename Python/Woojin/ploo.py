@@ -4,7 +4,7 @@ import torch
 
 
 def generate_txt(model):
-    coeffs = (model.layer['consequent']._coeff).tolist()  ##print final coeffs in cnsequent layer.
+    coeffs = model.layer['consequent']._coeff.tolist()  ##print final coeffs in cnsequent layer.
     with open("coeffs.txt", 'w') as output:
         for row in coeffs:
             output.write(str(row) + '\n')
@@ -26,10 +26,10 @@ def mfs_print(model):
 
 
 def _plot_mfs(var_name, fv, model):
-    '''
+    """
         A simple utility function to plot the MFs for a variable.
         Supply the variable name, MFs and a set of x values to plot.
-    '''
+    """
     zero_length = (model.number_of_mfs[model.input_keywords[0]])
     x = torch.zeros(10000)
     y = -5
@@ -55,4 +55,4 @@ agent = torch.load('models/anfis_ddpg.model')
 model = agent.actor
 mfs_print(model)
 print(len(agent.memory))
-print((model.layer['consequent']._coeff))
+print(model.layer['consequent']._coeff)

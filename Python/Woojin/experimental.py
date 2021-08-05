@@ -19,7 +19,7 @@ def mfs_print(model):
 
 
 def _mk_param(val):
-    '''Make a torch parameter from a scalar value'''
+    """Make a torch parameter from a scalar value"""
     if isinstance(val, torch.Tensor):
         val = val.item()
     return torch.nn.Parameter(torch.tensor(val, dtype=torch.float))
@@ -92,10 +92,10 @@ def mfs_constraint(model):
 
 
 class TwoLayerNet(torch.nn.Module):
-    '''
+    """
         From the pytorch examples, a simjple 2-layer neural net.
         https://pytorch.org/tutorials/beginner/pytorch_with_examples.html
-    '''
+    """
 
     def __init__(self, d_in, hidden_size, d_out):
         super(TwoLayerNet, self).__init__()
@@ -109,10 +109,10 @@ class TwoLayerNet(torch.nn.Module):
 
 
 def linear_model(x, y, epochs=200, hidden_size=10):
-    '''
+    """
         Predict y from x using a simple linear model with one hidden layer.
         https://pytorch.org/tutorials/beginner/pytorch_with_examples.html
-    '''
+    """
     assert x.shape[0] == y.shape[0], 'x and y have different batch sizes'
     d_in = x.shape[1]
     d_out = y.shape[1]
@@ -134,9 +134,9 @@ def linear_model(x, y, epochs=200, hidden_size=10):
 
 
 def plotErrors(errors):
-    '''
+    """
         Plot the given list of error rates against no. of epochs
-    '''
+    """
     plt.plot(range(len(errors)), errors, '-ro', label='errors')
     plt.ylabel('Percentage error')
     plt.xlabel('Epoch')
@@ -144,9 +144,9 @@ def plotErrors(errors):
 
 
 def plotResults(y_actual, y_predicted):
-    '''
+    """
         Plot the actual and predicted y values (in different colours).
-    '''
+    """
     plt.plot(range(len(y_predicted)), y_predicted.detach().numpy(),
              'r', label='trained')
     plt.plot(range(len(y_actual)), y_actual.numpy(), 'b', label='original')
@@ -155,10 +155,10 @@ def plotResults(y_actual, y_predicted):
 
 
 def _plot_mfs(var_name, fv, x):
-    '''
+    """
         A simple utility function to plot the MFs for a variable.
         Supply the variable name, MFs and a set of x values to plot.
-    '''
+    """
 
     x = torch.zeros(10000)
     y = -5
@@ -191,13 +191,13 @@ def calc_error(y_pred, y_actual):
         ss_total = torch.sum((y_actual - torch.mean(y_actual)) ** 2)
         ss_regression = torch.sum((y_actual - y_pred) ** 2)
         rsq = (1 - (ss_regression / ss_total)) * 100
-    return (tot_loss, rmse, perc_loss, rsq)
+    return tot_loss, rmse, perc_loss, rsq
 
 
 def test_anfis(model, data, show_plots=False):
-    '''
+    """
         Do a single forward pass with x and compare with y_actual.
-    '''
+    """
     x, y_actual = data.dataset.tensors
     if show_plots:
         plot_all_mfs(model, x)
@@ -212,9 +212,9 @@ def test_anfis(model, data, show_plots=False):
 
 def train_anfis_with(model, data, optimizer, criterion,
                      epochs=500, show_plots=False):
-    '''
+    """
         Train the given model using the given (x,y) data.
-    '''
+    """
     if show_plots:
         plot_all_mfs(model, data.dataset.tensors[0])
     temp = []
@@ -244,7 +244,7 @@ def train_anfis_with(model, data, optimizer, criterion,
         errors.append(perc_loss)
         # Print some progress information as the net is trained:
         temp.append(mse.item())
-        time123 = ((time.clock() - 0.5))
+        time123 = (time.clock() - 0.5)
         temp1.append(time123)
         temp2.append(rsq.item())
         mfs_print(model)
@@ -271,9 +271,9 @@ def train_anfis_with(model, data, optimizer, criterion,
 
 
 def train_anfis(model, data, epochs=500, show_plots=False):
-    '''
+    """
         Train the given model using the given (x,y) data.
-    '''
+    """
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-5, momentum=0.99)
     criterion = torch.nn.MSELoss(reduction='sum')
     train_anfis_with(model, data, optimizer, criterion, epochs, show_plots)
