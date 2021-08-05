@@ -6,6 +6,5 @@ def ddpg(a, b, c, agent):
     new_state = np.array([a, b, c])
     #    agent.curr_states = new_state
     action = np.array([np.float64(agent.get_action(new_state))])
-    print(agent)
     # print(action)
     return action.item()
