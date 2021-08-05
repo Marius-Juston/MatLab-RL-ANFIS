@@ -26,8 +26,7 @@ addToPath = {
     fullfile(pyRoot, 'Scripts')
     fullfile(pyRoot, 'bin')
     fullfile(pwd, 'Python')
-    fullfile(pwd, 'Python', 'anfis')
-    fullfile(pwd, 'Python', 'vizualize')
+    fullfile(pwd, 'Python', 'Woojin')
     pwd
     };
 p = [addToPath(:); p(:)];
@@ -42,8 +41,7 @@ pyenv
 
 python_paths = {'' 
                 fullfile(pwd, "Python")
-                fullfile(pwd, "Python", 'anfis') 
-                fullfile(pwd, "Python", 'vizualize')};
+                fullfile(pwd, "Python", 'Woojin')};
 
 for i=1:length(python_paths)
     name = python_paths{i};

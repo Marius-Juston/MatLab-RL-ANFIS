@@ -1,11 +1,11 @@
 import sys
+import gym
 import torch
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import anfis
-import math
-import random
-from ddpg import DDPGagent
+from ddpg01 import DDPGagent
 from memory import *
 from model import *
 def generate_txt(model):
@@ -57,40 +57,28 @@ def plot_all_mfs(model):
     for i, (var_name, fv) in enumerate(model.layer.fuzzify.varmfs.items()):
         _plot_mfs(var_name, fv, model)
 
-def weight_mod(agent):
-    randomlist = random.sample(range(0, len(agent.critic.linear1.weight)), int(len(agent.critic.linear1.weight)/2))
-    #kai =torch.nn.init.kaiming_normal_(torch.empty(1,4, requires_grad=True), a=math.sqrt(5), mode='fan_in', nonlinearity='leaky_relu')
-    with torch.no_grad():
-        for num in randomlist:
-            your_new_weights = torch.nn.init.kaiming_normal_(torch.empty(1,4, requires_grad=True), a=math.sqrt(5))
-            agent.critic.linear1.weight[num].copy_(your_new_weights[0])
-    return agent
-def ddpg(a,b,c,reward,done,agent,action,total_reward,over_fit,dis_error):
+def ddpg(a,b,c,reward,done,agent,action):
 #    print(a)
 #    print(b)
 #    print(c)
 #    print(reward)
 #    print(done)
-
-#    if over_fit == 1:
-#        agent = weight_mod(agent)
-
     batch_size = 128
 #    agent = torch.load('anfis_ddpg.model')
     state = agent.curr_states
     new_state = np.array([a,b,c])
-#    print(state)
-#    print(new_state)
     agent.curr_states = new_state
 #    action = np.array([np.float64(agent.get_action(new_state))])
     #reward = np.float64(reward)
-#    print(len(agent.memory))
+    print(len(agent.memory))
     agent.memory.push(state, action, reward, new_state, done)
 #    states, actions, rewards, next_states, _ = agent.memory.sample(reward)
-#    print(len(agent.memory))
-
-    if len(agent.memory) > batch_size and dis_error > 0.1:
+    print(len(agent.memory))
+    if len(agent.memory) > batch_size:
         agent.update(batch_size)
 
 
     return agent
+agent = torch.load('models/anfis_ddpg.model')
+for i in range(200):
+    ddpg(0.0,0.0,0.0,i,False,agent,0.1)

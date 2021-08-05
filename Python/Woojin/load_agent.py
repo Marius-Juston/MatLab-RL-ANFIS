@@ -90,7 +90,7 @@ def disable(agent):
 
     return agent
 def ddpg(over_fit,curr_epoch):
-    agent = torch.load('anfis_ddpg.model')
+    agent = torch.load('models/anfis_ddpg.model')
  #   agent = enable(agent)
     if over_fit == 1:
         #agent = weight_mod(agent)

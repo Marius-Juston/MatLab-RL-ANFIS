@@ -57,7 +57,7 @@ def plot_all_mfs(model):
 
 
 
-agent = torch.load('anfis_ddpg.model')
-torch.save(agent.actor, 'actor.model')
-torch.save(agent.critic, 'critic.model')
+agent = torch.load('models/anfis_ddpg.model')
+torch.save(agent.actor, 'models/actor.model')
+torch.save(agent.critic, 'models/critic.model')
 print(agent.curr_states)

@@ -16,8 +16,7 @@ from membership import TrapezoidalMembFunc, make_trap_mfs, make_bell_mfs, BellMe
 from experimental import train_anfis, test_anfis
 
 def abc(a,b,c):
-    model = torch.load('anfis_model.npy')
+    model = torch.load('models/anfis_model.npy')
     x = torch.tensor([[a,b,c]])
     x = model(x).item()
-    print(type(x))
     return x

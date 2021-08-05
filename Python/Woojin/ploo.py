@@ -1,11 +1,9 @@
 import sys
-import gym
 import torch
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import anfis
-from ddpg01 import DDPGagent
+from ddpg import DDPGagent
 from memory import *
 from model import *
 def generate_txt(model):
@@ -57,28 +55,10 @@ def plot_all_mfs(model):
     for i, (var_name, fv) in enumerate(model.layer.fuzzify.varmfs.items()):
         _plot_mfs(var_name, fv, model)
 
-def ddpg(a,b,c,reward,done,agent,action):
-#    print(a)
-#    print(b)
-#    print(c)
-#    print(reward)
-#    print(done)
-    batch_size = 128
-#    agent = torch.load('anfis_ddpg.model')
-    state = agent.curr_states
-    new_state = np.array([a,b,c])
-    agent.curr_states = new_state
-#    action = np.array([np.float64(agent.get_action(new_state))])
-    #reward = np.float64(reward)
-    print(len(agent.memory))
-    agent.memory.push(state, action, reward, new_state, done)
-#    states, actions, rewards, next_states, _ = agent.memory.sample(reward)
-    print(len(agent.memory))
-    if len(agent.memory) > batch_size:
-        agent.update(batch_size)
-
-
-    return agent
-agent = torch.load('anfis_ddpg.model')
-for i in range(200):
-    ddpg(0.0,0.0,0.0,i,False,agent,0.1)
+agent = torch.load('models/anfis_ddpg.model')
+model = agent.actor
+mfs_print(model)
+print(len(agent.memory))
+print((model.layer['consequent']._coeff))
+#for i in range(128):
+#    ddpg(0.0,0.0,0.0,i,False)
